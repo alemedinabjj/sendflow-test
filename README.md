@@ -21,6 +21,52 @@ Aplicação SaaS multi-tenant para disparo de mensagens (simulado) a contatos or
 >
 > Com o plano Blaze ativo, basta `firebase deploy --only functions`.
 
+## Demonstração
+
+Fluxo completo executado localmente com o Firebase Emulator Suite (Authentication, Firestore e Cloud Functions), com dois clientes: **Loja Aurora** e **Mercado Central**.
+
+### Cadastro e conexões
+
+| Cadastro (cada usuário é um cliente) | Conexões do cliente |
+|---|---|
+| ![Cadastro](docs/images/01-cadastro.png) | ![Conexões](docs/images/02-conexoes.png) |
+
+### Contatos
+
+| Novo contato (telefone com máscara ou DDI é normalizado) | Contatos da conexão |
+|---|---|
+| ![Novo contato](docs/images/03-novo-contato.png) | ![Contatos](docs/images/04-contatos.png) |
+
+### Broadcast
+
+| Agendando uma mensagem para contatos selecionados | Mensagens enviadas e agendadas, em tempo real |
+|---|---|
+| ![Agendar mensagem](docs/images/05-agendar-mensagem.png) | ![Mensagens](docs/images/06-mensagens.png) |
+
+| Filtro por mensagens agendadas | Edição de uma mensagem agendada |
+|---|---|
+| ![Filtro agendadas](docs/images/07-filtro-agendadas.png) | ![Editar agendada](docs/images/08-editar-agendada.png) |
+
+### Isolamento entre clientes e exclusão em cascata
+
+| Mercado Central abre a URL de uma conexão da Loja Aurora e é redirecionado | Excluir uma conexão remove seus contatos e mensagens |
+|---|---|
+| ![Isolamento](docs/images/09-isolamento.png) | ![Excluir conexão](docs/images/10-excluir-conexao.png) |
+
+### Backend
+
+| Authentication: um usuário por cliente | `clients`: perfil do cliente (id = uid) |
+|---|---|
+| ![Auth](docs/images/11-auth-usuarios.png) | ![clients](docs/images/12-firestore-clients.png) |
+
+| `connections`: `tenantId` em cada documento | `contacts`: `connectionId` no lugar de subcoleção |
+|---|---|
+| ![connections](docs/images/13-firestore-connections.png) | ![contacts](docs/images/14-firestore-contacts.png) |
+
+| `messages`: status, agendamento e snapshot dos destinatários | Cloud Function `onConnectionDeleted` executando a cascata |
+|---|---|
+| ![messages](docs/images/15-firestore-messages.png) | ![Logs da function](docs/images/16-functions-logs.png) |
+
 ## Estrutura
 
 ```
