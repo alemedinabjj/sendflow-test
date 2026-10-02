@@ -2,6 +2,8 @@
 
 Aplicação SaaS multi-tenant para disparo de mensagens (simulado) a contatos organizados por conexão. Cada usuário cadastrado é um cliente isolado: gerencia suas conexões, os contatos de cada conexão e as mensagens enviadas ou agendadas.
 
+**Aplicação publicada:** https://sendflow-671f8.web.app
+
 **Stack:** React 19 + Vite + TypeScript, Material UI, Tailwind CSS, Firebase Authentication, Firestore e Cloud Functions (v2, Node 22).
 
 ## Estrutura
@@ -10,13 +12,13 @@ Aplicação SaaS multi-tenant para disparo de mensagens (simulado) a contatos or
 .
 ├── web/            # frontend (Vite)
 ├── functions/      # Cloud Functions
-├── rules-tests/    # testes das Security Rules no emulador
+├── rules-tests/    # testes das Security Rules
 ├── firestore.rules
 ├── firestore.indexes.json
 └── firebase.json
 ```
 
-Os três pacotes são independentes (cada um com seu `package.json`) para não acoplar o deploy das functions ao restante do repositório.
+Os três pacotes são independentes (cada um com seu `package.json`) para que as functions sejam publicadas sem dependências do frontend.
 
 No frontend o código é organizado por feature (`auth`, `connections`, `contacts`, `messages`). Cada feature segue o mesmo formato:
 
@@ -80,44 +82,6 @@ Sem subcoleções, apagar uma conexão deixaria contatos e mensagens órfãos. O
 
 Listas de conexões, contatos e mensagens usam `onSnapshot` através de um hook genérico (`useFirestoreQuery`). Quando a função agendada marca uma mensagem como enviada, a tela atualiza sozinha. Escritas aparecem na hora graças ao cache local do SDK.
 
-## Rodando localmente
+## Testes e CI
 
-Requisitos: Node 22 (`.nvmrc`), Java 11+ (emulador do Firestore) e Firebase CLI.
-
-```bash
-npm --prefix web install
-npm --prefix functions install
-npm --prefix rules-tests install
-
-npm --prefix functions run build
-firebase emulators:start --only auth,firestore,functions --project demo-sendflow
-npm --prefix web run dev
-```
-
-O `web/.env.development.local` deve ter `VITE_USE_EMULATORS=true` e `VITE_FIREBASE_PROJECT_ID=demo-sendflow` (veja `web/.env.example`).
-
-O emulador não executa funções agendadas automaticamente; para simular a execução, rode `runDispatch` apontando para o emulador ou use o shell de functions.
-
-## Testes
-
-```bash
-npm --prefix rules-tests run test:emu   # Security Rules (isolamento, validações, status)
-npm --prefix functions run test:emu     # dispatcher e cascata contra o emulador
-npm --prefix web test                   # schemas, normalização de telefone, filtros
-```
-
-## Deploy
-
-Requer o plano Blaze (Cloud Scheduler). Com `web/.env.production.local` preenchido:
-
-```bash
-firebase deploy
-```
-
-Publica Hosting, Functions, regras e índices. O Firestore está em `nam5` e as functions em `us-central1`: triggers do Firestore (v2, via Eventarc) precisam estar numa região compatível com a do banco, e a localização do banco não pode ser alterada depois de criado.
-
-## CI
-
-`.github/workflows/ci.yml` roda em todo push e pull request: lint, testes e build do web, build das functions e os testes das Security Rules e das functions no emulador do Firestore (projeto `demo-sendflow`, sem credenciais).
-
-O deploy é feito manualmente com `firebase deploy`.
+As Security Rules (isolamento entre clientes, validações e controle de status), as Cloud Functions (agendamento e exclusão em cascata) e a lógica do frontend (validações, normalização de telefone, filtros) têm testes automatizados, executados pelo GitHub Actions (`.github/workflows/ci.yml`) a cada push e pull request.
