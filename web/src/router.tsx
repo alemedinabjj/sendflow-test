@@ -1,11 +1,28 @@
 import { createBrowserRouter, Navigate } from 'react-router';
-
-const Placeholder = ({ name }: { name: string }) => <div className="p-8">{name}</div>;
+import { LoginPage } from './features/auth/LoginPage';
+import { SignupPage } from './features/auth/SignupPage';
+import { ProtectedRoute, PublicOnlyRoute } from './features/auth/routeGuards';
+import { AppLayout } from './layout/AppLayout';
 
 export const router = createBrowserRouter([
-  { path: '/login', element: <Placeholder name="login" /> },
-  { path: '/signup', element: <Placeholder name="signup" /> },
-  { path: '/connections', element: <Placeholder name="connections" /> },
-  { path: '/connections/:connectionId', element: <Placeholder name="connection" /> },
+  {
+    element: <PublicOnlyRoute />,
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/signup', element: <SignupPage /> },
+    ],
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { path: '/connections', element: <div>Conexões</div> },
+          { path: '/connections/:connectionId', element: <div>Conexão</div> },
+        ],
+      },
+    ],
+  },
   { path: '*', element: <Navigate to="/connections" replace /> },
 ]);
