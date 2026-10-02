@@ -115,3 +115,9 @@ firebase deploy
 ```
 
 Publica Hosting, Functions, regras e índices. O Firestore está em `nam5` e as functions em `us-central1`: triggers do Firestore (v2, via Eventarc) precisam estar numa região compatível com a do banco, e a localização do banco não pode ser alterada depois de criado.
+
+## CI
+
+`.github/workflows/ci.yml` roda em todo push e pull request: lint, testes e build do web, build das functions e os testes das Security Rules e das functions no emulador do Firestore (projeto `demo-sendflow`, sem credenciais).
+
+O deploy é feito manualmente com `firebase deploy`.
