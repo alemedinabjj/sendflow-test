@@ -2,8 +2,64 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isOwner(data) {
+      return isSignedIn() && data.tenantId == uid();
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function unchanged(field) {
+      return incoming()[field] == resource.data[field];
+    }
+
+    function isNonEmptyString(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength;
+    }
+
+    function stampedOnCreate() {
+      return incoming().createdAt == request.time && incoming().updatedAt == request.time;
+    }
+
+    function stampedOnUpdate() {
+      return unchanged('createdAt') && incoming().updatedAt == request.time;
+    }
+
+    match /clients/{clientId} {
+      allow read: if isSignedIn() && clientId == uid();
+      allow create: if isSignedIn() && clientId == uid()
+        && incoming().keys().hasOnly(['name', 'email', 'createdAt'])
+        && isNonEmptyString(incoming().name, 80)
+        && incoming().email is string
+        && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && clientId == uid()
+        && incoming().diff(resource.data).affectedKeys().hasOnly(['name'])
+        && isNonEmptyString(incoming().name, 80);
+      allow delete: if false;
+    }
+
+    function isValidConnection(data) {
+      return data.keys().hasOnly(['tenantId', 'name', 'createdAt', 'updatedAt'])
+        && isNonEmptyString(data.name, 60);
+    }
+
+    match /connections/{connectionId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isOwner(incoming()) && isValidConnection(incoming()) && stampedOnCreate();
+      allow update: if isOwner(resource.data)
+        && unchanged('tenantId')
+        && isValidConnection(incoming())
+        && stampedOnUpdate();
     }
   }
 }
