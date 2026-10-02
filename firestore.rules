@@ -86,5 +86,46 @@ service cloud.firestore {
         && isValidContact(incoming())
         && stampedOnUpdate();
     }
+
+    function isValidMessageContent(data) {
+      return data.keys().hasOnly([
+          'tenantId', 'connectionId', 'body', 'recipients', 'status',
+          'scheduledAt', 'sentAt', 'createdAt', 'updatedAt'
+        ])
+        && isNonEmptyString(data.body, 1000)
+        && data.recipients is list
+        && data.recipients.size() > 0
+        && data.recipients.size() <= 500;
+    }
+
+    function isScheduledInFuture(data) {
+      return data.status == 'scheduled'
+        && data.scheduledAt is timestamp
+        && data.scheduledAt > request.time
+        && data.sentAt == null;
+    }
+
+    function isSentNow(data) {
+      return data.status == 'sent'
+        && data.scheduledAt == null
+        && data.sentAt == request.time;
+    }
+
+    match /messages/{messageId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isOwner(incoming())
+        && ownsConnection(incoming().connectionId)
+        && isValidMessageContent(incoming())
+        && (isScheduledInFuture(incoming()) || isSentNow(incoming()))
+        && stampedOnCreate();
+      // status/sentAt are owned by the dispatcher; clients may only reshape a still-pending message
+      allow update: if isOwner(resource.data)
+        && resource.data.status == 'scheduled'
+        && incoming().diff(resource.data).affectedKeys()
+             .hasOnly(['body', 'recipients', 'scheduledAt', 'updatedAt'])
+        && isValidMessageContent(incoming())
+        && isScheduledInFuture(incoming())
+        && stampedOnUpdate();
+    }
   }
 }
