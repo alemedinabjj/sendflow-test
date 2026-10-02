@@ -81,6 +81,10 @@ describe('messages create', () => {
     await assertFails(write(scheduled({ body: '' })));
   });
 
+  it('accepts 1000 accented characters', async () => {
+    await assertSucceeds(write(scheduled({ body: 'ã'.repeat(1000) })));
+  });
+
   it('rejects body longer than 1000 chars', async () => {
     await assertFails(write(scheduled({ body: 'x'.repeat(1001) })));
   });
