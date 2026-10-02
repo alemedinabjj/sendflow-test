@@ -15,6 +15,8 @@ import { MessageItem } from './MessageItem';
 
 type Props = { tenantId: string; connectionId: string; contacts: Contact[] };
 
+const editDenied = 'Não foi possível salvar. A mensagem pode já ter sido enviada ou o horário escolhido já passou.';
+
 const emptyText: Record<MessageFilter, string> = {
   all: 'Nenhuma mensagem criada ainda.',
   scheduled: 'Nenhuma mensagem agendada.',
@@ -44,7 +46,7 @@ export const MessageList = ({ tenantId, connectionId, contacts }: Props) => {
       await updateScheduledMessage(id, patch);
       enqueueSnackbar('Mensagem atualizada.', { variant: 'success' });
     } catch (e) {
-      enqueueSnackbar(firestoreErrorMessage(e), { variant: 'error' });
+      enqueueSnackbar(firestoreErrorMessage(e, { permissionDenied: editDenied }), { variant: 'error' });
       throw e;
     }
   };
