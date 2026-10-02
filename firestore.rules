@@ -61,5 +61,30 @@ service cloud.firestore {
         && isValidConnection(incoming())
         && stampedOnUpdate();
     }
+
+    function ownsConnection(connectionId) {
+      let path = /databases/$(database)/documents/connections/$(connectionId);
+      return connectionId is string && exists(path) && get(path).data.tenantId == uid();
+    }
+
+    function isValidContact(data) {
+      return data.keys().hasOnly(['tenantId', 'connectionId', 'name', 'phone', 'createdAt', 'updatedAt'])
+        && isNonEmptyString(data.name, 80)
+        && data.phone is string
+        && data.phone.matches('^55[0-9]{10,11}$');
+    }
+
+    match /contacts/{contactId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isOwner(incoming())
+        && ownsConnection(incoming().connectionId)
+        && isValidContact(incoming())
+        && stampedOnCreate();
+      allow update: if isOwner(resource.data)
+        && unchanged('tenantId')
+        && unchanged('connectionId')
+        && isValidContact(incoming())
+        && stampedOnUpdate();
+    }
   }
 }
