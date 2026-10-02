@@ -97,6 +97,60 @@ Sem subcoleções, apagar uma conexão deixaria contatos e mensagens órfãos. O
 
 Listas de conexões, contatos e mensagens usam `onSnapshot` através de um hook genérico (`useFirestoreQuery`). Quando a função agendada marca uma mensagem como enviada, a tela atualiza sozinha. Escritas aparecem na hora graças ao cache local do SDK.
 
+## Rodando localmente com o emulador
+
+Dá para testar o fluxo completo, incluindo as Cloud Functions, sem nenhum projeto real, usando o Firebase Emulator Suite.
+
+Requisitos: Node 22 (`.nvmrc`), Java 11+ (o emulador do Firestore roda em Java) e Firebase CLI (`npm install -g firebase-tools`).
+
+1. Instale as dependências:
+
+   ```bash
+   npm --prefix web install
+   npm --prefix functions install
+   npm --prefix rules-tests install
+   ```
+
+2. Crie `web/.env.development.local` apontando para o emulador:
+
+   ```bash
+   VITE_FIREBASE_API_KEY=demo-key
+   VITE_FIREBASE_AUTH_DOMAIN=demo-sendflow.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=demo-sendflow
+   VITE_FIREBASE_APP_ID=demo-app
+   VITE_USE_EMULATORS=true
+   ```
+
+3. Suba os emuladores de Auth, Firestore e Functions (terminal 1):
+
+   ```bash
+   npm --prefix functions run build
+   firebase emulators:start --only auth,firestore,functions --project demo-sendflow
+   ```
+
+   O terminal mostra o endereço da interface do emulador (por padrão http://127.0.0.1:4000), onde dá para ver usuários, documentos e logs das functions.
+
+4. Rode o frontend (terminal 2) e acesse http://localhost:5173:
+
+   ```bash
+   npm --prefix web run dev
+   ```
+
+5. O emulador não dispara funções agendadas sozinho. Depois que o horário de uma mensagem agendada passar, simule uma execução do agendador (terminal 3):
+
+   ```bash
+   npm --prefix functions run dispatch:local
+   ```
+
+   A mensagem muda para "Enviada" na tela em tempo real. A exclusão em cascata roda automaticamente no emulador ao excluir uma conexão.
+
+Para rodar os testes automatizados (regras, functions e frontend):
+
+```bash
+firebase emulators:exec --only firestore --project demo-sendflow "npm --prefix rules-tests test && npm --prefix functions test"
+npm --prefix web test
+```
+
 ## Testes e CI
 
 As Security Rules (isolamento entre clientes, validações e controle de status), as Cloud Functions (agendamento e exclusão em cascata) e a lógica do frontend (validações, normalização de telefone, filtros) têm testes automatizados, executados pelo GitHub Actions (`.github/workflows/ci.yml`) a cada push e pull request.

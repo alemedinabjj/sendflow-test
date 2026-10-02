@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
-    "test:emu": "firebase emulators:exec --only firestore --project demo-sendflow \"npm test\""
+    "test:emu": "firebase emulators:exec --only firestore --project demo-sendflow \"npm test\"",
+    "dispatch:local": "npm run build && node scripts/dispatch-once.mjs"
   },
   "dependencies": {
     "firebase-admin": "^14.5.0",
