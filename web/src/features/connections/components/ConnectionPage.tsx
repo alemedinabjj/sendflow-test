@@ -6,6 +6,7 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded';
 import ContactsRoundedIcon from '@mui/icons-material/ContactsRounded';
 import { ContactsTab } from '../../contacts/components/ContactsTab';
+import { BroadcastTab } from '../../messages/components/BroadcastTab';
 import { LoadingBlock } from '../../../shared/components/LoadingBlock';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { useConnection } from '../hooks';
@@ -46,7 +47,7 @@ export const ConnectionPage = () => {
         <Tab value="contacts" label="Contatos" icon={<ContactsRoundedIcon />} iconPosition="start" />
         <Tab value="broadcast" label="Broadcast" icon={<CampaignRoundedIcon />} iconPosition="start" />
       </Tabs>
-      {tab === 'contacts' ? <ContactsTab connectionId={connection.id} /> : <div>Broadcast</div>}
+      {tab === 'contacts' ? <ContactsTab connectionId={connection.id} /> : <BroadcastTab connectionId={connection.id} />}
     </>
   );
 };
