@@ -6,6 +6,21 @@ Aplicação SaaS multi-tenant para disparo de mensagens (simulado) a contatos or
 
 **Stack:** React 19 + Vite + TypeScript, Material UI, Tailwind CSS, Firebase Authentication, Firestore e Cloud Functions (v2, Node 22).
 
+> **Sobre as Cloud Functions na versão publicada**
+>
+> As Cloud Functions (agendamento e exclusão em cascata) estão implementadas e testadas, mas não foram publicadas. Cloud Functions exigem o plano Blaze, porque o plano Spark não oferece essa opção, e para ativar a conta de faturamento o Google estava exigindo um pré-pagamento de R$ 250.
+>
+> Por isso, no link publicado funcionam autenticação, conexões, contatos, envio imediato, agendamento, filtros, edição e exclusão de mensagens, sempre com as Security Rules ativas. Só a troca automática de "Agendada" para "Enviada" e a limpeza em cascata ao excluir uma conexão dependem das functions.
+>
+> Validei o funcionamento completo com o Firebase Emulator Suite (o emulador do Firestore roda em Java), executando a lógica das functions (varredura de agendadas e exclusão em cascata) contra um Firestore local. Os testes automatizados cobrem esse fluxo e rodam no GitHub Actions a cada push. Para reproduzir localmente (requer Node 22, Java 11+ e Firebase CLI):
+>
+> ```bash
+> npm --prefix functions install && npm --prefix rules-tests install
+> firebase emulators:exec --only firestore --project demo-sendflow "npm --prefix rules-tests test && npm --prefix functions test"
+> ```
+>
+> Com o plano Blaze ativo, basta `firebase deploy --only functions`.
+
 ## Estrutura
 
 ```
