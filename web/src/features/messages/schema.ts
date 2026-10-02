@@ -27,7 +27,10 @@ const scheduleError = `Escolha um horário com pelo menos ${MIN_SCHEDULE_LEAD_MI
 
 export const composeSchema = z
   .object({
-    contactIds: z.array(z.string()).min(1, 'Selecione ao menos um contato.'),
+    contactIds: z
+      .array(z.string())
+      .min(1, 'Selecione ao menos um contato.')
+      .max(500, 'Selecione no máximo 500 contatos.'),
     body: z.string().trim().min(1, 'Escreva a mensagem.').max(1000, 'Máximo de 1000 caracteres.'),
     mode: z.enum(['now', 'schedule']),
     scheduledAt: z.custom<Dayjs>((value) => dayjs.isDayjs(value)).nullable(),
@@ -42,7 +45,17 @@ export const composeSchema = z
 export type ComposeValues = z.input<typeof composeSchema>;
 export type ComposeInput = z.output<typeof composeSchema>;
 
-export const toRecipients = (contacts: Contact[], ids: string[]): Recipient[] => {
+export type PickableContact = Pick<Contact, 'id' | 'name' | 'phone'> & { removed?: boolean };
+
+export const pickableContacts = (contacts: PickableContact[], recipients: Recipient[]): PickableContact[] => {
+  const existing = new Set(contacts.map((contact) => contact.id));
+  const removed = recipients
+    .filter((recipient) => !existing.has(recipient.contactId))
+    .map(({ contactId, name, phone }) => ({ id: contactId, name, phone, removed: true }));
+  return [...contacts, ...removed];
+};
+
+export const toRecipients = (contacts: PickableContact[], ids: string[]): Recipient[] => {
   const byId = new Map(contacts.map((contact) => [contact.id, contact]));
   return ids.flatMap((id) => {
     const contact = byId.get(id);

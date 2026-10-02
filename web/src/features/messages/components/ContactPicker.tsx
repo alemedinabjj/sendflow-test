@@ -12,16 +12,16 @@ import {
 } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { formatPhone } from '../../contacts/phone';
-import type { Contact } from '../../contacts/schema';
+import type { PickableContact } from '../schema';
 
 type Props = {
-  contacts: Contact[];
+  contacts: PickableContact[];
   value: string[];
   onChange: (ids: string[]) => void;
   error?: string;
 };
 
-const matches = (contact: Contact, term: string) => {
+const matches = (contact: PickableContact, term: string) => {
   const digits = term.replace(/\D/g, '');
   return contact.name.toLowerCase().includes(term) || (digits !== '' && contact.phone.includes(digits));
 };
@@ -90,7 +90,10 @@ export const ContactPicker = ({ contacts, value, onChange, error }: Props) => {
               <ListItemIcon className="min-w-0! pr-2">
                 <Checkbox edge="start" size="small" disableRipple checked={selected.has(contact.id)} />
               </ListItemIcon>
-              <ListItemText primary={contact.name} secondary={formatPhone(contact.phone)} />
+              <ListItemText
+                primary={contact.name}
+                secondary={contact.removed ? `${formatPhone(contact.phone)} · contato excluído` : formatPhone(contact.phone)}
+              />
             </ListItemButton>
           ))}
           {visible.length === 0 && (

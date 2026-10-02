@@ -39,6 +39,10 @@ export const BroadcastComposer = ({ tenantId, connectionId, contacts }: Props) =
 
   const submit = handleSubmit(async ({ contactIds, body, mode, scheduledAt }) => {
     const message = { tenantId, connectionId, body, recipients: toRecipients(contacts, contactIds) };
+    if (message.recipients.length === 0) {
+      enqueueSnackbar('Os contatos selecionados não existem mais.', { variant: 'warning' });
+      return;
+    }
     try {
       if (mode === 'schedule' && scheduledAt) {
         await scheduleMessage(message, toScheduledDate(scheduledAt));

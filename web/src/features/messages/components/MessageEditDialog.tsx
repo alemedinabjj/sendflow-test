@@ -7,6 +7,7 @@ import type { Contact } from '../../contacts/schema';
 import {
   composeSchema,
   earliestSchedule,
+  pickableContacts,
   toRecipients,
   toScheduledDate,
   type ComposeInput,
@@ -41,12 +42,13 @@ export const MessageEditDialog = ({ message, contacts, onSubmit, onClose }: Prop
       : undefined,
   });
   const alreadySent = message?.status === 'sent';
+  const options = message ? pickableContacts(contacts, message.recipients) : contacts;
 
   const submit = handleSubmit(async ({ contactIds, body, scheduledAt }) => {
     if (!message || !scheduledAt) return;
     await onSubmit(message.id, {
       body,
-      recipients: toRecipients(contacts, contactIds),
+      recipients: toRecipients(options, contactIds),
       scheduledAt: toScheduledDate(scheduledAt),
     });
     onClose();
@@ -63,7 +65,7 @@ export const MessageEditDialog = ({ message, contacts, onSubmit, onClose }: Prop
             control={control}
             render={({ field }) => (
               <ContactPicker
-                contacts={contacts}
+                contacts={options}
                 value={field.value ?? []}
                 onChange={field.onChange}
                 error={errors.contactIds?.message}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import dayjs from 'dayjs';
 import type { Contact } from '../contacts/schema';
-import { composeSchema, toRecipients, toScheduledDate } from './schema';
+import { composeSchema, pickableContacts, toRecipients, toScheduledDate } from './schema';
 
 const base = { contactIds: ['k1'], body: 'Olá!', mode: 'schedule' as const };
 
@@ -27,6 +27,11 @@ describe('composeSchema', () => {
 
   it('requires at least one contact', () => {
     expect(composeSchema.safeParse({ ...base, mode: 'now', contactIds: [], scheduledAt: null }).success).toBe(false);
+  });
+
+  it('rejects more than 500 recipients', () => {
+    const contactIds = Array.from({ length: 501 }, (_, i) => `k${i}`);
+    expect(composeSchema.safeParse({ ...base, mode: 'now', contactIds, scheduledAt: null }).success).toBe(false);
   });
 
   it('rejects bodies longer than 1000 chars', () => {
@@ -62,5 +67,25 @@ describe('toRecipients', () => {
 describe('toScheduledDate', () => {
   it('keeps the local instant picked by the user', () => {
     expect(toScheduledDate(dayjs('2026-10-05T14:30')).getTime()).toBe(new Date('2026-10-05T14:30').getTime());
+  });
+});
+
+describe('pickableContacts', () => {
+  const current = [{ id: 'k1', name: 'Ana Silva', phone: '5511988887777' }];
+  const recipients = [
+    { contactId: 'k1', name: 'Ana', phone: '5511988887777' },
+    { contactId: 'gone', name: 'João', phone: '551133334444' },
+  ];
+
+  it('keeps recipients whose contact was deleted, flagged as removed', () => {
+    expect(pickableContacts(current, recipients)).toEqual([
+      { id: 'k1', name: 'Ana Silva', phone: '5511988887777' },
+      { id: 'gone', name: 'João', phone: '551133334444', removed: true },
+    ]);
+  });
+
+  it('lets an edit keep a deleted recipient', () => {
+    const recipientsAfterEdit = toRecipients(pickableContacts(current, recipients), ['k1', 'gone']);
+    expect(recipientsAfterEdit.map((r) => r.contactId)).toEqual(['k1', 'gone']);
   });
 });
