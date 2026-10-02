@@ -6,6 +6,7 @@ import { useContacts } from '../../contacts/hooks';
 import { EmptyState } from '../../../shared/components/EmptyState';
 import { LoadingBlock } from '../../../shared/components/LoadingBlock';
 import { BroadcastComposer } from './BroadcastComposer';
+import { MessageList } from './MessageList';
 
 export const BroadcastTab = ({ connectionId }: { connectionId: string }) => {
   const tenantId = useTenantId();
@@ -31,7 +32,7 @@ export const BroadcastTab = ({ connectionId }: { connectionId: string }) => {
   return (
     <div className="grid items-start gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <BroadcastComposer tenantId={tenantId} connectionId={connectionId} contacts={contacts} />
-      <div />
+      <MessageList tenantId={tenantId} connectionId={connectionId} contacts={contacts} />
     </div>
   );
 };

@@ -50,7 +50,7 @@ export const ContactPicker = ({ contacts, value, onChange, error }: Props) => {
       <div className="mb-2 flex items-center justify-between text-sm">
         <span className="font-medium text-slate-700">Destinatários</span>
         <span className="text-slate-500">
-          {value.length} de {contacts.length} selecionado(s)
+          {contacts.filter((c) => selected.has(c.id)).length} de {contacts.length} selecionado(s)
         </span>
       </div>
       <Paper className={error ? 'border-red-500!' : ''}>
