@@ -4,7 +4,7 @@ import { onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { cascadeDeleteConnection } from './cascadeDelete';
 
 export const onConnectionDeleted = onDocumentDeleted(
-  { document: 'connections/{connectionId}', region: 'southamerica-east1' },
+  { document: 'connections/{connectionId}', region: 'us-central1' },
   async (event) => {
     const tenantId = event.data?.get('tenantId');
     if (typeof tenantId !== 'string') return;

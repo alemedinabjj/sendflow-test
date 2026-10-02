@@ -114,4 +114,4 @@ Requer o plano Blaze (Cloud Scheduler). Com `web/.env.production.local` preenchi
 firebase deploy
 ```
 
-Publica Hosting, Functions, regras e índices. Firestore e Functions ficam em `southamerica-east1`.
+Publica Hosting, Functions, regras e índices. O Firestore está em `nam5` e as functions em `us-central1`: triggers do Firestore (v2, via Eventarc) precisam estar numa região compatível com a do banco, e a localização do banco não pode ser alterada depois de criado.

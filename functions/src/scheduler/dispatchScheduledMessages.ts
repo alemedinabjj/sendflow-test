@@ -6,7 +6,7 @@ import { runDispatch } from './runDispatch';
 export const dispatchScheduledMessages = onSchedule(
   {
     schedule: 'every 1 minutes',
-    region: 'southamerica-east1',
+    region: 'us-central1',
     timeZone: 'America/Sao_Paulo',
   },
   async () => {
