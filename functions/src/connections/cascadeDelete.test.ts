@@ -18,7 +18,7 @@ beforeEach(async () => {
 
 describe('cascadeDeleteConnection', () => {
   it('removes contacts and messages of the connection only', async () => {
-    expect(await cascadeDeleteConnection(db, 'c1', 'A')).toEqual({ contacts: 2, messages: 2 });
+    expect(await cascadeDeleteConnection(db, 'c1', 'A')).toEqual({ contacts: 2, messages: 2, failed: 0 });
 
     expect((await db.doc('contacts/k3').get()).exists).toBe(true);
     expect((await db.doc('contacts/kB').get()).exists).toBe(true);
@@ -27,6 +27,6 @@ describe('cascadeDeleteConnection', () => {
 
   it('is idempotent', async () => {
     await cascadeDeleteConnection(db, 'c1', 'A');
-    expect(await cascadeDeleteConnection(db, 'c1', 'A')).toEqual({ contacts: 0, messages: 0 });
+    expect(await cascadeDeleteConnection(db, 'c1', 'A')).toEqual({ contacts: 0, messages: 0, failed: 0 });
   });
 });
